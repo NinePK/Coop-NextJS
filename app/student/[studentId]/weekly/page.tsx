@@ -241,7 +241,7 @@ export default function WeeklyFormPage({
                   ))}
                 </select>
               </Field>
-              <Field label="แผนก / หน่วยงาน">
+              <Field label="ตำแหน่ง">
                 <input
                   value={form.department}
                   onChange={(e) => setForm((v) => ({ ...v, department: e.target.value }))}
@@ -325,9 +325,8 @@ export default function WeeklyFormPage({
                     key={s}
                     type="button"
                     onClick={() => setForm((v) => ({ ...v, status: s }))}
-                    className={`rounded-full px-3 py-2 text-sm ${
-                      form.status === s ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={`rounded-full px-3 py-2 text-sm ${form.status === s ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"
+                      }`}
                   >
                     {statusLabel(s)}
                   </button>

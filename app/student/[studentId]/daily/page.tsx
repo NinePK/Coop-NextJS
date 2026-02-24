@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 
 type DailyRow = {
   id: number;
@@ -228,14 +228,14 @@ export default function DailyPage({ params }: { params: Promise<{ studentId: str
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="แผนก / หน่วยงาน">
+              <Field label="ตำแหน่ง">
                 <input
                   value={form.department}
                   onChange={(e) => setForm((v) => ({ ...v, department: e.target.value }))}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"
                 />
               </Field>
-              <Field label="ชื่อในวงเล็บ (ฝั่งนิสิต)">
+              <Field label="ลงชื่อนิสิต (ในวงเล็บตรงลงชื่อ)">
                 <input
                   value={form.studentSignatureName}
                   onChange={(e) => setForm((v) => ({ ...v, studentSignatureName: e.target.value }))}
@@ -323,9 +323,8 @@ export default function DailyPage({ params }: { params: Promise<{ studentId: str
       {toast ? (
         <div className="pointer-events-none fixed bottom-5 right-5 z-50">
           <div
-            className={`rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-xl ${
-              toast.tone === "success" ? "bg-emerald-600" : "bg-red-600"
-            }`}
+            className={`rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-xl ${toast.tone === "success" ? "bg-emerald-600" : "bg-red-600"
+              }`}
           >
             {toast.message}
           </div>
@@ -363,71 +362,172 @@ function TimePicker24({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const [hour = "", minute = ""] = value.split(":");
+  const inputId = useId();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+  const [hour = "00", minute = "00"] = value.split(":");
   const minuteQuickPicks = ["00", "15", "30", "45"];
-  const hourListId = "daily-hour-options";
-  const minuteListId = "daily-minute-options";
+  const pickerPanelId = `daily-time-panel-${inputId}`;
+
+  function normalizeTime(raw: string) {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+
+    const colonMatch = trimmed.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+    const digits = trimmed.replace(/\D/g, "");
+
+    let h: number | null = null;
+    let m: number | null = null;
+
+    if (colonMatch) {
+      h = Number(colonMatch[1]);
+      m = Number(colonMatch[2]);
+    } else if (digits.length <= 2) {
+      h = Number(digits);
+      m = 0;
+    } else if (digits.length === 3) {
+      h = Number(digits.slice(0, 1));
+      m = Number(digits.slice(1));
+    } else {
+      h = Number(digits.slice(0, 2));
+      m = Number(digits.slice(2, 4));
+    }
+
+    if (h == null || m == null || Number.isNaN(h) || Number.isNaN(m)) return value;
+    if (h < 0 || h > 23 || m < 0 || m > 59) return value;
+
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  function formatTimeDraft(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 4);
+    if (!digits) return "";
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  }
+
+  function setHour(nextHour: string) {
+    onChange(`${nextHour}:${minute || "00"}`);
+  }
+
+  function setMinute(nextMinute: string) {
+    onChange(`${hour || "00"}:${nextMinute}`);
+  }
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    function onPointerDown(e: MouseEvent) {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setPickerOpen(false);
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [pickerOpen]);
 
   return (
-    <div className="space-y-1">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+    <div ref={rootRef} className="relative space-y-2">
+      <div className="grid grid-cols-[1fr_auto] gap-2">
         <input
-          list={hourListId}
-          value={hour}
+          value={value}
           inputMode="numeric"
-          placeholder="ชั่วโมง"
-          maxLength={2}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/\D/g, "").slice(0, 2);
-            if (raw === "") {
-              onChange("");
-              return;
-            }
-            onChange(`${raw.padStart(2, "0")}:${minute || "00"}`);
-          }}
+          maxLength={5}
+          pattern="\d{2}:\d{2}"
+          placeholder="เช่น 08:30 หรือ 830"
+          onChange={(e) => onChange(formatTimeDraft(e.target.value))}
+          onBlur={(e) => onChange(normalizeTime(e.target.value))}
           className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"
         />
-        <span className="font-semibold text-slate-500">:</span>
-        <input
-          list={minuteListId}
-          value={minute}
-          inputMode="numeric"
-          placeholder="นาที"
-          maxLength={2}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/\D/g, "").slice(0, 2);
-            if (raw === "" && !hour) {
-              onChange("");
-              return;
-            }
-            onChange(`${hour || "00"}:${(raw || "00").padStart(2, "0")}`);
-          }}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"
-        />
-        <datalist id={hourListId}>
-          {hours.map((h) => (
-            <option key={h} value={h} />
-          ))}
-        </datalist>
-        <datalist id={minuteListId}>
-          {minutes.map((m) => (
-            <option key={m} value={m} />
-          ))}
-        </datalist>
+        <button
+          type="button"
+          aria-expanded={pickerOpen}
+          aria-controls={pickerPanelId}
+          onClick={() => setPickerOpen((v) => !v)}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        >
+          เวลา
+          <span className={`text-xs transition ${pickerOpen ? "rotate-180" : ""}`}>▼</span>
+        </button>
       </div>
+
+      {pickerOpen ? (
+        <div
+          id={pickerPanelId}
+          className="absolute left-0 top-[calc(100%+8px)] z-30 w-full max-w-[420px] overflow-hidden rounded-2xl border border-slate-700/80 bg-gradient-to-b from-slate-900 to-slate-950 text-white shadow-2xl ring-1 ring-black/20"
+        >
+          <div className="border-b border-white/10 px-4 py-3">
+            <div className="text-center text-xs uppercase tracking-[0.18em] text-slate-400">Select Time</div>
+            <div className="mt-1 text-center text-3xl font-semibold tabular-nums">
+              {(hour || "00").padStart(2, "0")}:{(minute || "00").padStart(2, "0")}
+            </div>
+          </div>
+
+          <div className="relative grid grid-cols-2 gap-3 p-3">
+            <div className="pointer-events-none absolute left-3 right-3 top-1/2 h-11 -translate-y-1/2 rounded-xl border border-white/10 bg-white/5" />
+            <div className="pointer-events-none absolute inset-x-3 top-3 h-16 bg-gradient-to-b from-slate-900 via-slate-900/80 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-3 bottom-3 h-16 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+
+            <WheelColumn
+              title="Hour"
+              unit="H"
+              options={hours}
+              selected={hour || "00"}
+              onSelect={setHour}
+            />
+            <WheelColumn
+              title="Minute"
+              unit="M"
+              options={minutes}
+              selected={minute || "00"}
+              onSelect={setMinute}
+            />
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/10 p-3">
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setPickerOpen(false);
+              }}
+              className="rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+            >
+              ล้างเวลา
+            </button>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(false)}
+              className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+            >
+              เสร็จสิ้น
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap gap-1.5">
         {minuteQuickPicks.map((m) => (
           <button
             key={m}
             type="button"
-            onClick={() => onChange(`${hour || "00"}:${m}`)}
-            className={`rounded-md px-2 py-1 text-xs font-medium transition ${
-              minute === m
-                ? "bg-blue-600 text-white"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-            }`}
+            onClick={() => setMinute(m)}
+            className={`rounded-md px-2 py-1 text-xs font-medium transition ${minute === m
+              ? "bg-blue-600 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
           >
             {m} นาที
           </button>
@@ -440,7 +540,83 @@ function TimePicker24({
           ล้างเวลา
         </button>
       </div>
-      <p className="text-xs text-slate-500">รูปแบบ 24 ชั่วโมง (เวลาไทย)</p>
+
+    </div>
+  );
+}
+
+function WheelColumn({
+  title,
+  unit,
+  options,
+  selected,
+  onSelect,
+}: {
+  title: string;
+  unit: string;
+  options: string[];
+  selected: string;
+  onSelect: (value: string) => void;
+}) {
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const ITEM_HEIGHT = 44;
+  const PAD_HEIGHT = 88;
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const index = Math.max(0, options.indexOf(selected));
+    const target = index * ITEM_HEIGHT;
+    el.scrollTo({ top: target, behavior: "smooth" });
+  }, [selected, options]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current != null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  function handleScroll() {
+    if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      const el = listRef.current;
+      if (!el) return;
+      const index = Math.round(el.scrollTop / ITEM_HEIGHT);
+      const next = options[Math.min(options.length - 1, Math.max(0, index))];
+      if (next && next !== selected) onSelect(next);
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="px-1 text-center text-xs text-slate-400">{title}</div>
+      <div
+        ref={listRef}
+        onScroll={handleScroll}
+        className="relative h-56 snap-y snap-mandatory overflow-y-auto rounded-xl bg-white/5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+      >
+        <div style={{ height: PAD_HEIGHT }} />
+        <div>
+          {options.map((option) => (
+            <button
+              key={`${unit}-${option}`}
+              type="button"
+              onClick={() => onSelect(option)}
+              className={`flex h-11 w-full snap-center items-center justify-center rounded-lg text-2xl tabular-nums transition ${selected === option
+                ? "bg-white/10 text-white"
+                : "text-slate-500 hover:text-slate-200"
+                }`}
+            >
+              {option}
+              <span className="ml-2 text-xs font-semibold text-slate-400">{unit}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{ height: PAD_HEIGHT }} />
+      </div>
     </div>
   );
 }

@@ -631,7 +631,7 @@ export default function StudentDashboard({
                         <tr>
                           <Th>สัปดาห์</Th>
                           <Th>วันที่</Th>
-                          <Th>แผนก</Th>
+                          <Th>ตำแหน่ง</Th>
                           <Th>สถานะ</Th>
                           <Th>งานที่ทำ</Th>
                           <Th>ปัญหา</Th>
@@ -703,7 +703,7 @@ export default function StudentDashboard({
                   <tr>
                     <Th>วันที่</Th>
                     <Th>เวลา</Th>
-                    <Th>แผนก</Th>
+                    <Th>ตำแหน่ง</Th>
                     <Th>งานที่ทำ</Th>
                     <Th>แก้ไข / ลบ</Th>
                   </tr>
@@ -751,11 +751,10 @@ export default function StudentDashboard({
       {toast ? (
         <div className="pointer-events-none fixed bottom-5 right-5 z-50">
           <div
-            className={`rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-xl backdrop-blur ${
-              toast.tone === "success"
-                ? "bg-emerald-600/95 shadow-emerald-900/20"
-                : "bg-red-600/95 shadow-red-900/20"
-            }`}
+            className={`rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-xl backdrop-blur ${toast.tone === "success"
+              ? "bg-emerald-600/95 shadow-emerald-900/20"
+              : "bg-red-600/95 shadow-red-900/20"
+              }`}
           >
             {toast.message}
           </div>
