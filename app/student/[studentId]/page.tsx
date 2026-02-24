@@ -1,4 +1,5 @@
-﻿"use client";
+﻿//app/student/[studentId]/page.tsx
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -221,22 +222,23 @@ export default function StudentDashboard({
         return a.week_no - b.week_no;
       });
     const keyTh: Record<string, string> = {
-      week: "à¸ªà¸±à¸›à¸”à¸²à¸«à¹Œà¸—à¸µà¹ˆ",
-      dept: "à¹à¸œà¸™à¸à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™",
-      startDate: "à¹€à¸£à¸´à¹ˆà¸¡à¸à¸²à¸£à¸šà¸±à¸™à¸—à¸¶à¸",
-      endDate: "à¸ªà¸´à¹‰à¸™à¸ªà¸¸à¸”à¸à¸²à¸£à¸šà¸±à¸™à¸—à¸¶à¸",
-      job: "à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸›à¸à¸´à¸šà¸±à¸•à¸´",
-      problem: "à¸›à¸±à¸à¸«à¸²à¸—à¸µà¹ˆà¸žà¸šà¹ƒà¸™à¸à¸²à¸£à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™",
-      status: "à¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸£à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™",
-      fixed: "à¸à¸²à¸£à¹à¸à¹‰à¸›à¸±à¸à¸«à¸²",
-      courseFixed: "à¸£à¸²à¸¢à¸§à¸´à¸Šà¸²à¸—à¸µà¹ˆà¸™à¸³à¸¡à¸²à¹ƒà¸Šà¹‰",
-      exp: "à¸ªà¸´à¹ˆà¸‡à¸—à¸µà¹ˆà¹„à¸”à¹‰à¸£à¸±à¸š",
-      suggestion: "à¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­à¹à¸™à¸°",
-      training_id: "à¸«à¸¡à¸²à¸¢à¹€à¸¥à¸‚à¸à¸¶à¸à¸‡à¸²à¸™",
+      week: "สัปดาห์ที่",
+      dept: "แผนกปฏิบัติงาน",
+      startDate: "เริ่มการบันทึก",
+      endDate: "สิ้นสุดการบันทึก",
+      job: "งานที่ปฏิบัติ",
+      problem: "ปัญหาที่พบในการปฏิบัติงาน",
+      status: "สถานะการปฏิบัติงาน",
+      fixed: "การแก้ปัญหา",
+      courseFixed: "รายวิชาที่นำมาใช้",
+      exp: "สิ่งที่ได้รับ",
+      suggestion: "ข้อเสนอแนะ",
+      training_id: "หมายเลขฝึกงาน",
     };
 
+
     const jsonData = allRows.map((r) => ({
-      week: `${r.week_no} ( ${fmtDateThaiLong(r.start_date)} à¸–à¸¶à¸‡ ${fmtDateThaiLong(r.end_date)} )`,
+      week: `${r.week_no} ( ${fmtDateThaiLong(r.start_date)} ถึง ${fmtDateThaiLong(r.end_date)} )`,
       dept: r.department ?? "-",
       status: r.status,
       job: r.work_summary ?? "-",
@@ -366,19 +368,20 @@ export default function StudentDashboard({
 
     const monthTh = [
       "",
-      "à¸¡à¸à¸£à¸²à¸„à¸¡",
-      "à¸à¸¸à¸¡à¸ à¸²à¸žà¸±à¸™à¸˜à¹Œ",
-      "à¸¡à¸µà¸™à¸²à¸„à¸¡",
-      "à¹€à¸¡à¸©à¸²à¸¢à¸™",
-      "à¸žà¸¤à¸©à¸ à¸²à¸„à¸¡",
-      "à¸¡à¸´à¸–à¸¸à¸™à¸²à¸¢à¸™",
-      "à¸à¸£à¸à¸Žà¸²à¸„à¸¡",
-      "à¸ªà¸´à¸‡à¸«à¸²à¸„à¸¡",
-      "à¸à¸±à¸™à¸¢à¸²à¸¢à¸™",
-      "à¸•à¸¸à¸¥à¸²à¸„à¸¡",
-      "à¸žà¸¤à¸¨à¸ˆà¸´à¸à¸²à¸¢à¸™",
-      "à¸˜à¸±à¸™à¸§à¸²à¸„à¸¡",
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
     ];
+
 
     const sorted = [...dailyRows].sort((a, b) => b.report_date.localeCompare(a.report_date));
 
@@ -407,24 +410,24 @@ export default function StudentDashboard({
 
       doc.setFont("THSarabunNew", "bold");
       doc.setFontSize(16);
-      doc.text("à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™", 105, 22, { align: "center" });
+      doc.text("บันทึกการปฏิบัติงาน", 105, 22, { align: "center" });
 
       doc.setFont("THSarabunNew", "normal");
       doc.setFontSize(12);
 
-      doc.text("à¸§à¸±à¸™", 18, 38);
+      doc.text("วัน", 18, 38);
       dottedLine(21, 39, 44, 39);
-      doc.text("à¸—à¸µà¹ˆ", 45, 38);
+      doc.text("ที่", 45, 38);
       dottedLine(48, 39, 59, 39);
-      doc.text("à¹€à¸”à¸·à¸­à¸™", 60, 38);
+      doc.text("เดือน", 60, 38);
       dottedLine(69, 39, 99, 39);
-      doc.text("à¸žà¸¸à¸—à¸˜à¸¨à¸±à¸à¸£à¸²à¸Š", 100, 38);
+      doc.text("พุทธศักราช", 100, 38);
       dottedLine(116, 39, 137, 39);
-      doc.text("à¹€à¸§à¸¥à¸²à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™", 138, 38);
+      doc.text("เวลาปฏิบัติงาน", 138, 38);
       dottedLine(159, 39, 177, 39);
-      doc.text("à¸™. à¸–à¸¶à¸‡", 178, 38);
+      doc.text("น. ถึง", 178, 38);
       dottedLine(188, 39, 202, 39);
-      doc.text("à¸™.", 203, 38);
+      doc.text("น.", 203, 38);
 
       doc.text(dateNum, 32.5, 38);
       doc.text(dateNum, 52.5, 38);
@@ -433,16 +436,16 @@ export default function StudentDashboard({
       doc.text(toTimeInput(row.work_start_time) || "", 168, 38, { align: "center" });
       doc.text(toTimeInput(row.work_end_time) || "", 195, 38, { align: "center" });
 
-      doc.text("à¹à¸œà¸™à¸à¸—à¸µà¹ˆà¹€à¸‚à¹‰à¸²à¹„à¸›à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™à¸§à¸±à¸™à¸™à¸µà¹‰", 18, 45);
+      doc.text("แผนกที่เข้าไปปฏิบัติงานวันนี้", 18, 45);
       dottedLine(58, 46, 202, 46);
       doc.text(row.department || "", 59, 45);
 
       const sections: Array<{ title: string; body: string | null; top: number }> = [
-        { title: "1.   à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸›à¸à¸´à¸šà¸±à¸•à¸´", body: row.work_summary, top: 58 },
-        { title: "2.   à¸›à¸±à¸à¸«à¸²à¸—à¸µà¹ˆà¸žà¸šà¹ƒà¸™à¸à¸²à¸£à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸‡à¸²à¸™", body: row.problem, top: 91 },
-        { title: "3.   à¸à¸²à¸£à¹à¸à¹‰à¸›à¸±à¸à¸«à¸²", body: row.fix_action, top: 124 },
-        { title: "4.   à¸›à¸£à¸°à¸ªà¸šà¸à¸²à¸£à¸“à¹Œ / à¸„à¸§à¸²à¸¡à¸£à¸¹à¹‰à¸—à¸µà¹ˆà¹„à¸”à¹‰à¸£à¸±à¸š", body: row.experience, top: 157 },
-        { title: "5.   à¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­à¹à¸™à¸°", body: row.suggestion, top: 190 },
+        { title: "1.   งานที่ปฏิบัติ", body: row.work_summary, top: 58 },
+        { title: "2.   ปัญหาที่พบในการปฏิบัติงาน", body: row.problem, top: 91 },
+        { title: "3.   การแก้ปัญหา", body: row.fix_action, top: 124 },
+        { title: "4.   ประสบการณ์ / ความรู้ที่ได้รับ", body: row.experience, top: 157 },
+        { title: "5.   ข้อเสนอแนะ", body: row.suggestion, top: 190 },
       ];
 
       sections.forEach((s) => {
@@ -453,9 +456,9 @@ export default function StudentDashboard({
         textLines(s.body, 20, s.top + 5.8, 178, 3);
       });
 
-      doc.text("à¸¥à¸‡à¸Šà¸·à¹ˆà¸­", 18, 238);
+      doc.text("ลงชื่อ", 18, 238);
       dottedLine(28, 239, 83, 239);
-      doc.text("à¸¥à¸‡à¸Šà¸·à¹ˆà¸­", 117, 238);
+      doc.text("ลงชื่อ", 117, 238);
       dottedLine(127, 239, 202, 239);
       doc.text("(", 18, 244);
       dottedLine(21, 245, 83, 245);
@@ -466,12 +469,13 @@ export default function StudentDashboard({
       doc.text(row.student_signature_name || "", 52, 244, {
         align: "center",
       });
-      doc.text("à¸™à¸´à¸ªà¸´à¸•", 52, 251, { align: "center" });
-      doc.text("à¸žà¸™à¸±à¸à¸‡à¸²à¸™à¸—à¸µà¹ˆà¸›à¸£à¸¶à¸à¸©à¸²", 160, 251, { align: "center" });
+      doc.text("นิสิต", 52, 251, { align: "center" });
+      doc.text("พนักงานที่ปรึกษา", 160, 251, { align: "center" });
     });
 
     doc.save(`${studentId}-daily.pdf`);
   }
+
 
   async function deleteWeeklyRow(row: WeeklyRow) {
     const runDelete = async () => {
