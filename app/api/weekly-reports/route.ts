@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     const rows = await queryRows<WeeklyReportRow[]>(
       `SELECT *
        FROM weekly_reports
-       WHERE student_id = ?
+       WHERE student_id = $1
        ORDER BY semester_year DESC, semester_no DESC, week_no ASC, id ASC`,
       [studentId],
     );
@@ -101,18 +101,19 @@ export async function POST(request: NextRequest) {
          semester_year, semester_no,
          week_no, start_date, end_date, department,
          work_summary, problem, status, fix_action, course_fix_action, experience, suggestion
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         start_date = VALUES(start_date),
-         end_date = VALUES(end_date),
-         department = VALUES(department),
-         work_summary = VALUES(work_summary),
-         problem = VALUES(problem),
-         status = VALUES(status),
-         fix_action = VALUES(fix_action),
-         course_fix_action = VALUES(course_fix_action),
-         experience = VALUES(experience),
-         suggestion = VALUES(suggestion)`,
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       ON CONFLICT (student_id, semester_year, semester_no, week_no) DO UPDATE SET
+         start_date = EXCLUDED.start_date,
+         end_date = EXCLUDED.end_date,
+         department = EXCLUDED.department,
+         work_summary = EXCLUDED.work_summary,
+         problem = EXCLUDED.problem,
+         status = EXCLUDED.status,
+         fix_action = EXCLUDED.fix_action,
+         course_fix_action = EXCLUDED.course_fix_action,
+         experience = EXCLUDED.experience,
+         suggestion = EXCLUDED.suggestion,
+         updated_at = NOW()`,
       [
         studentId,
         semesterYear,
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
     const rows = await queryRows<WeeklyReportRow[]>(
       `SELECT *
        FROM weekly_reports
-       WHERE student_id = ? AND semester_year = ? AND semester_no = ? AND week_no = ?
+       WHERE student_id = $1 AND semester_year = $2 AND semester_no = $3 AND week_no = $4
        LIMIT 1`,
       [studentId, semesterYear, semesterNo, weekNo],
     );
@@ -164,7 +165,7 @@ export async function DELETE(request: NextRequest) {
 
     await execute(
       `DELETE FROM weekly_reports
-       WHERE student_id = ? AND semester_year = ? AND semester_no = ? AND week_no = ?`,
+       WHERE student_id = $1 AND semester_year = $2 AND semester_no = $3 AND week_no = $4`,
       [studentId, semesterYear, semesterNo, weekNo],
     );
 

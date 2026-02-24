@@ -1,8 +1,8 @@
-import mysql, { Pool } from "mysql2/promise";
+import { Pool, QueryResult, QueryResultRow } from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __coopMysqlPool: Pool | undefined;
+  var __coopPgPool: Pool | undefined;
 }
 
 function requireEnv(name: string) {
@@ -12,35 +12,47 @@ function requireEnv(name: string) {
 }
 
 function createPool() {
-  return mysql.createPool({
-    host: process.env.MYSQL_HOST ?? "127.0.0.1",
-    port: Number(process.env.MYSQL_PORT ?? 3306),
-    user: requireEnv("MYSQL_USER"),
-    password: process.env.MYSQL_PASSWORD ?? "",
-    database: requireEnv("MYSQL_DATABASE"),
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    charset: "utf8mb4",
+  if (process.env.DATABASE_URL) {
+    return new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      ssl:
+        process.env.PGSSLMODE === "disable"
+          ? false
+          : { rejectUnauthorized: false },
+    });
+  }
+
+  return new Pool({
+    host: process.env.PGHOST ?? "127.0.0.1",
+    port: Number(process.env.PGPORT ?? 5432),
+    user: requireEnv("PGUSER"),
+    password: process.env.PGPASSWORD ?? "",
+    database: requireEnv("PGDATABASE"),
+    max: 10,
+    ssl:
+      process.env.PGSSLMODE === "disable"
+        ? false
+        : { rejectUnauthorized: false },
   });
 }
 
 export function getPool() {
-  if (!global.__coopMysqlPool) {
-    global.__coopMysqlPool = createPool();
+  if (!global.__coopPgPool) {
+    global.__coopPgPool = createPool();
   }
-  return global.__coopMysqlPool;
+  return global.__coopPgPool;
 }
 
-export async function queryRows<T>(sql: string, params: unknown[] = []) {
-  const [rows] = await getPool().query(sql, params as (string | number | null)[]);
-  return rows as T;
+export async function queryRows<T extends QueryResultRow[]>(
+  sql: string,
+  params: unknown[] = [],
+) {
+  const result = await getPool().query(sql, params);
+  return result.rows as T;
 }
 
 export async function execute(sql: string, params: unknown[] = []) {
-  const [result] = await getPool().execute(
-    sql,
-    params as (string | number | null)[],
-  );
+  const result: QueryResult = await getPool().query(sql, params);
   return result;
 }

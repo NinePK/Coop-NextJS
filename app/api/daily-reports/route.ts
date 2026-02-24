@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     const rows = await queryRows<DailyReportRow[]>(
       `SELECT *
        FROM daily_reports
-       WHERE student_id = ?
+       WHERE student_id = $1
        ORDER BY report_date DESC, id DESC`,
       [studentId],
     );
@@ -88,17 +88,18 @@ export async function POST(request: NextRequest) {
          work_start_time, work_end_time, department,
          work_summary, problem, fix_action, experience, suggestion,
          student_signature_name
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         work_start_time = VALUES(work_start_time),
-         work_end_time = VALUES(work_end_time),
-         department = VALUES(department),
-         work_summary = VALUES(work_summary),
-         problem = VALUES(problem),
-         fix_action = VALUES(fix_action),
-         experience = VALUES(experience),
-         suggestion = VALUES(suggestion),
-         student_signature_name = VALUES(student_signature_name)`,
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       ON CONFLICT (student_id, report_date) DO UPDATE SET
+         work_start_time = EXCLUDED.work_start_time,
+         work_end_time = EXCLUDED.work_end_time,
+         department = EXCLUDED.department,
+         work_summary = EXCLUDED.work_summary,
+         problem = EXCLUDED.problem,
+         fix_action = EXCLUDED.fix_action,
+         experience = EXCLUDED.experience,
+         suggestion = EXCLUDED.suggestion,
+         student_signature_name = EXCLUDED.student_signature_name,
+         updated_at = NOW()`,
       [
         studentId,
         reportDate,
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     const rows = await queryRows<DailyReportRow[]>(
       `SELECT *
        FROM daily_reports
-       WHERE student_id = ? AND report_date = ?
+       WHERE student_id = $1 AND report_date = $2
        LIMIT 1`,
       [studentId, reportDate],
     );
@@ -143,7 +144,7 @@ export async function DELETE(request: NextRequest) {
 
     await execute(
       `DELETE FROM daily_reports
-       WHERE student_id = ? AND report_date = ?`,
+       WHERE student_id = $1 AND report_date = $2`,
       [studentId, reportDate],
     );
 
